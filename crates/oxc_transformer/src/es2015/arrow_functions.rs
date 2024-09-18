@@ -93,8 +93,6 @@ pub struct ArrowFunctions<'a> {
     ctx: Ctx<'a>,
     _options: ArrowFunctionsOptions,
     this_var_stack: std::vec::Vec<Option<BoundIdentifier<'a>>>,
-    /// Stack to keep track of whether we are inside an arrow function or not.
-    inside_arrow_function_stack: std::vec::Vec<bool>,
 }
 
 impl<'a> ArrowFunctions<'a> {
@@ -104,7 +102,6 @@ impl<'a> ArrowFunctions<'a> {
             _options: options,
             // Initial entries for `Program` scope
             this_var_stack: vec![None],
-            inside_arrow_function_stack: vec![false],
         }
     }
 }
@@ -115,8 +112,6 @@ impl<'a> Traverse<'a> for ArrowFunctions<'a> {
 
     /// Insert `var _this = this;` for the global scope.
     fn exit_program(&mut self, program: &mut Program<'a>, _ctx: &mut TraverseCtx<'a>) {
-        debug_assert!(self.inside_arrow_function_stack.len() == 1);
-
         assert!(self.this_var_stack.len() == 1);
         let this_var = self.this_var_stack.pop().unwrap();
         if let Some(this_var) = this_var {
@@ -127,7 +122,6 @@ impl<'a> Traverse<'a> for ArrowFunctions<'a> {
     fn enter_function(&mut self, func: &mut Function<'a>, _ctx: &mut TraverseCtx<'a>) {
         if func.body.is_some() {
             self.this_var_stack.push(None);
-            self.inside_arrow_function_stack.push(false);
         }
     }
 
@@ -154,32 +148,6 @@ impl<'a> Traverse<'a> for ArrowFunctions<'a> {
                 &this_var,
             );
         }
-
-        self.inside_arrow_function_stack.pop().unwrap();
-    }
-
-    fn enter_arrow_function_expression(
-        &mut self,
-        _arrow: &mut ArrowFunctionExpression<'a>,
-        _ctx: &mut TraverseCtx<'a>,
-    ) {
-        self.inside_arrow_function_stack.push(true);
-    }
-
-    fn exit_arrow_function_expression(
-        &mut self,
-        _arrow: &mut ArrowFunctionExpression<'a>,
-        _ctx: &mut TraverseCtx<'a>,
-    ) {
-        self.inside_arrow_function_stack.pop().unwrap();
-    }
-
-    fn enter_class(&mut self, _class: &mut Class<'a>, _ctx: &mut TraverseCtx<'a>) {
-        self.inside_arrow_function_stack.push(false);
-    }
-
-    fn exit_class(&mut self, _class: &mut Class<'a>, _ctx: &mut TraverseCtx<'a>) {
-        self.inside_arrow_function_stack.pop().unwrap();
     }
 
     fn enter_static_block(&mut self, _block: &mut StaticBlock<'a>, _ctx: &mut TraverseCtx<'a>) {
@@ -200,7 +168,7 @@ impl<'a> Traverse<'a> for ArrowFunctions<'a> {
         ctx: &mut TraverseCtx<'a>,
     ) {
         if let JSXElementName::ThisExpression(this) = element_name {
-            if !self.is_inside_arrow_function() {
+            if !ctx.current_scope_flags().is_arrow() {
                 return;
             }
 
@@ -215,7 +183,7 @@ impl<'a> Traverse<'a> for ArrowFunctions<'a> {
         ctx: &mut TraverseCtx<'a>,
     ) {
         if let JSXMemberExpressionObject::ThisExpression(this) = object {
-            if !self.is_inside_arrow_function() {
+            if !ctx.current_scope_flags().is_arrow() {
                 return;
             }
 
@@ -226,7 +194,7 @@ impl<'a> Traverse<'a> for ArrowFunctions<'a> {
 
     fn enter_expression(&mut self, expr: &mut Expression<'a>, ctx: &mut TraverseCtx<'a>) {
         if let Expression::ThisExpression(this_expr) = expr {
-            if !self.is_inside_arrow_function() {
+            if !ctx.current_scope_flags().is_arrow() {
                 return;
             }
 
@@ -249,10 +217,6 @@ impl<'a> Traverse<'a> for ArrowFunctions<'a> {
 }
 
 impl<'a> ArrowFunctions<'a> {
-    fn is_inside_arrow_function(&self) -> bool {
-        *self.inside_arrow_function_stack.last().unwrap()
-    }
-
     fn get_this_identifier(
         &mut self,
         span: Span,
