@@ -1,4 +1,4 @@
-ts compatibility: 173/526 (32.89%)
+ts compatibility: 144/526 (27.38%)
 
 # Failed
 
@@ -93,6 +93,7 @@ ts compatibility: 173/526 (32.89%)
 ### comments
 * comments/15707.ts
 * comments/abstract_class.ts
+* comments/abstract_methods.ts
 * comments/after_jsx_generic.tsx
 * comments/declare_function.ts
 * comments/interface.ts
@@ -114,11 +115,13 @@ ts compatibility: 173/526 (32.89%)
 * comments-2/last-arg.ts
 
 ### compiler
+* compiler/anyIsAssignableToObject.ts
 * compiler/castOfAwait.ts
 * compiler/castParentheses.ts
 * compiler/castTest.ts
 * compiler/checkInfiniteExpansionTermination.ts
 * compiler/commentInNamespaceDeclarationWithIdentifierPathName.ts
+* compiler/commentsInterface.ts
 * compiler/contextualSignatureInstantiation2.ts
 * compiler/declareDottedModuleName.ts
 * compiler/es5ExportDefaultClassDeclaration4.ts
@@ -141,15 +144,23 @@ ts compatibility: 173/526 (32.89%)
 * conformance/classes/mixinAccessModifiers.ts
 * conformance/classes/mixinClassesAnnotated.ts
 * conformance/classes/mixinClassesAnonymous.ts
+* conformance/classes/mixinClassesMembers.ts
+* conformance/classes/nestedClassDeclaration.ts
 
 ### conformance/classes/classDeclarations/classAbstractKeyword
 * conformance/classes/classDeclarations/classAbstractKeyword/classAbstractImportInstantiation.ts
 * conformance/classes/classDeclarations/classAbstractKeyword/classAbstractInAModule.ts
 * conformance/classes/classDeclarations/classAbstractKeyword/classAbstractWithInterface.ts
 
+### conformance/classes/classDeclarations/classHeritageSpecification
+* conformance/classes/classDeclarations/classHeritageSpecification/classExtendsItselfIndirectly.ts
+
 ### conformance/classes/constructorDeclarations/constructorParameters
 * conformance/classes/constructorDeclarations/constructorParameters/constructorImplementationWithDefaultValues2.ts
 * conformance/classes/constructorDeclarations/constructorParameters/constructorParameterProperties.ts
+* conformance/classes/constructorDeclarations/constructorParameters/constructorParameterProperties2.ts
+* conformance/classes/constructorDeclarations/constructorParameters/declarationEmitReadonly.ts
+* conformance/classes/constructorDeclarations/constructorParameters/readonlyConstructorAssignment.ts
 
 ### conformance/comments
 * conformance/comments/comments.ts
@@ -176,6 +187,7 @@ ts compatibility: 173/526 (32.89%)
 * conformance/internalModules/importDeclarations/circularImportAlias.ts
 * conformance/internalModules/importDeclarations/exportImportAlias.ts
 * conformance/internalModules/importDeclarations/importAliasIdentifiers.ts
+* conformance/internalModules/importDeclarations/invalidImportAliasIdentifiers.ts
 * conformance/internalModules/importDeclarations/shadowedInternalModule.ts
 
 ### conformance/parser/ecmascript5/Statements
@@ -188,14 +200,17 @@ ts compatibility: 173/526 (32.89%)
 
 ### conformance/types/any
 * conformance/types/any/anyAsConstructor.ts
+* conformance/types/any/anyAsFunctionCall.ts
 * conformance/types/any/anyAsGenericFunctionCall.ts
 
 ### conformance/types/firstTypeNode
 * conformance/types/firstTypeNode/firstTypeNode.ts
 
 ### conformance/types/functions
+* conformance/types/functions/functionImplementationErrors.ts
 * conformance/types/functions/functionImplementations.ts
 * conformance/types/functions/functionOverloadErrorsSyntax.ts
+* conformance/types/functions/parameterInitializersForwardReferencing.ts
 
 ### conformance/types/intersectionType
 * conformance/types/intersectionType/intersectionType.ts
@@ -220,6 +235,14 @@ ts compatibility: 173/526 (32.89%)
 * conformance/types/tuple/contextualTypeWithTuple.ts
 * conformance/types/tuple/indexerWithTuple.ts
 * conformance/types/tuple/typeInferenceWithTupleType.ts
+* conformance/types/tuple/wideningTuples1.ts
+* conformance/types/tuple/wideningTuples2.ts
+* conformance/types/tuple/wideningTuples3.ts
+* conformance/types/tuple/wideningTuples5.ts
+* conformance/types/tuple/wideningTuples7.ts
+
+### conformance/types/tuple/emptyTuples
+* conformance/types/tuple/emptyTuples/emptyTuplesTypeAssertion02.ts
 
 ### conformance/types/typeOperator
 * conformance/types/typeOperator/typeOperator.ts
@@ -230,6 +253,7 @@ ts compatibility: 173/526 (32.89%)
 ### conformance/types/typeParameters/typeParameterLists
 * conformance/types/typeParameters/typeParameterLists/innerTypeParameterShadowingOuterOne.ts
 * conformance/types/typeParameters/typeParameterLists/innerTypeParameterShadowingOuterOne2.ts
+* conformance/types/typeParameters/typeParameterLists/staticMembersUsingClassTypeParameter.ts
 
 ### conformance/types/union
 * conformance/types/union/unionTypeCallSignatures.ts
@@ -290,6 +314,7 @@ ts compatibility: 173/526 (32.89%)
 ### declare
 * declare/declare_function.ts
 * declare/declare_interface.ts
+* declare/declare_var.ts
 * declare/object-type-in-declare-function.ts
 
 ### decorator-auto-accessors
@@ -355,6 +380,7 @@ ts compatibility: 173/526 (32.89%)
 * generic/ungrouped-parameters.ts
 
 ### import-export
+* import-export/empty-import.ts
 * import-export/type-modifier.ts
 
 ### import-require
@@ -380,6 +406,7 @@ ts compatibility: 173/526 (32.89%)
 
 ### interface
 * interface/comments-generic.ts
+* interface/comments.ts
 * interface/generic.ts
 * interface/ignore.ts
 * interface/long-extends.ts
@@ -412,6 +439,7 @@ ts compatibility: 173/526 (32.89%)
 * keyword-types/keyword-types-with-parens-comments.ts
 
 ### keywords
+* keywords/keywords-2.ts
 * keywords/module.ts
 
 ### last-argument-expansion
@@ -469,6 +497,9 @@ ts compatibility: 173/526 (32.89%)
 
 ### optional-call
 * optional-call/type-parameters.ts
+
+### optional-method
+* optional-method/optional-method.ts
 
 ### optional-type
 * optional-type/complex.ts
@@ -546,10 +577,12 @@ ts compatibility: 173/526 (32.89%)
 * tsx/url.tsx
 
 ### tuple
+* tuple/dangling-comments.ts
 * tuple/trailing-comma-for-empty-tuples.ts
 * tuple/trailing-comma-trailing-rest.ts
 * tuple/trailing-comma.ts
 * tuple/tuple-labeled.ts
+* tuple/tuple-rest-not-last.ts
 * tuple/tuple.ts
 
 ### type-alias
@@ -573,6 +606,10 @@ ts compatibility: 173/526 (32.89%)
 
 ### typeof
 * typeof/typeof.ts
+
+### typeof-this
+* typeof-this/decorators.ts
+* typeof-this/typeof-this.ts
 
 ### typeparams
 * typeparams/class-method.ts
