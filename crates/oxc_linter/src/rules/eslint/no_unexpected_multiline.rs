@@ -1,8 +1,5 @@
 use memchr::{memchr, memrchr};
-use oxc_ast::{
-    ast::{BinaryOperator, Expression},
-    AstKind,
-};
+use oxc_ast::{ast::BinaryOperator, AstKind};
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::{GetSpan, Span};
@@ -45,12 +42,12 @@ impl Rule for NoUnexpectedMultiline {
                 if let Some(AstKind::ChainExpression(_)) = ctx.nodes().parent_kind(node.id()) {
                     return;
                 }
-                let src =
-                    ctx.source_range(Span::new(call_expr.callee.span().end, call_expr.span.end));
+                let span = Span::new(call_expr.callee.span().end, call_expr.span.end);
+                let src = ctx.source_range(span);
                 if let Some(open_paren) = memchr(b'(', src.as_bytes()) {
                     if let Some(newline) = memchr(b'\n', src.as_bytes()) {
                         if newline < open_paren {
-                            ctx.diagnostic(OxcDiagnostic::warn("Unexpected newline between function name and open parenthesis of function call").with_label(Span::new(open_paren as u32, (open_paren + 1) as u32)));
+                            ctx.diagnostic(OxcDiagnostic::warn("Unexpected newline between function name and open parenthesis of function call").with_label(Span::new(span.start + open_paren as u32, span.start + (open_paren + 1) as u32)));
                         }
                     }
                 }
@@ -59,14 +56,12 @@ impl Rule for NoUnexpectedMultiline {
                 if !member_expr.is_computed() || member_expr.optional() {
                     return;
                 }
-                let src = ctx.source_range(Span::new(
-                    member_expr.object().span().end,
-                    member_expr.span().end,
-                ));
+                let span = Span::new(member_expr.object().span().end, member_expr.span().end);
+                let src = ctx.source_range(span);
                 if let Some(open_bracket) = memchr(b'[', src.as_bytes()) {
                     if let Some(newline) = memchr(b'\n', src.as_bytes()) {
                         if newline < open_bracket {
-                            ctx.diagnostic(OxcDiagnostic::warn("Unexpected newline between object and open bracket of property access").with_label(Span::new(open_bracket as u32, (open_bracket + 1) as u32)));
+                            ctx.diagnostic(OxcDiagnostic::warn("Unexpected newline between object and open bracket of property access").with_label(Span::new(span.start + open_bracket as u32, span.start + (open_bracket + 1) as u32)));
                         }
                     }
                 }
@@ -77,7 +72,8 @@ impl Rule for NoUnexpectedMultiline {
                 } else {
                     tagged_template_expr.tag.span().end
                 };
-                let src = ctx.source_range(Span::new(start, tagged_template_expr.span.end));
+                let span = Span::new(start, tagged_template_expr.span.end);
+                let src = ctx.source_range(span);
                 if let Some(backtick) = memchr(b'`', src.as_bytes()) {
                     if let Some(newline) = memchr(b'\n', src.as_bytes()) {
                         if newline < backtick {
@@ -85,7 +81,10 @@ impl Rule for NoUnexpectedMultiline {
                                 OxcDiagnostic::warn(
                                     "Unexpected newline between template tag and template literal",
                                 )
-                                .with_label(Span::new(backtick as u32, (backtick + 1) as u32)),
+                                .with_label(Span::new(
+                                    span.start + backtick as u32,
+                                    span.start + (backtick + 1) as u32,
+                                )),
                             );
                         }
                     }
@@ -109,9 +108,15 @@ impl Rule for NoUnexpectedMultiline {
                 let Some(newline) = memchr(b'\n', src.as_bytes()) else {
                     return;
                 };
+                let Some(first_slash) = memchr(b'/', src.as_bytes()) else {
+                    return;
+                };
                 let Some(second_slash) = memrchr(b'/', src.as_bytes()) else {
                     return;
                 };
+                if first_slash == second_slash {
+                    return;
+                }
 
                 // get all identifier characters after the second slash
                 let ident_bytes: Vec<u8> = src.as_bytes()[(second_slash + 1)..]
@@ -134,8 +139,8 @@ impl Rule for NoUnexpectedMultiline {
                             "Unexpected newline between numerator and division operator",
                         )
                         .with_label(Span::new(
-                            binary_expr.span.end as u32,
-                            (binary_expr.span.end + 1) as u32,
+                            span.start + first_slash as u32,
+                            span.start + (first_slash + 1) as u32,
                         )),
                     );
                 }
