@@ -68,6 +68,26 @@ impl Rule for NoUnexpectedMultiline {
                     }
                 }
             }
+            AstKind::TaggedTemplateExpression(tagged_template_expr) => {
+                let start = if let Some(generics) = &tagged_template_expr.type_parameters {
+                    generics.span.end
+                } else {
+                    tagged_template_expr.tag.span().end
+                };
+                let src = ctx.source_range(Span::new(start, tagged_template_expr.span.end));
+                if let Some(backtick) = memchr(b'`', src.as_bytes()) {
+                    if let Some(newline) = memchr(b'\n', src.as_bytes()) {
+                        if newline < backtick {
+                            ctx.diagnostic(
+                                OxcDiagnostic::warn(
+                                    "Unexpected newline between template tag and template literal",
+                                )
+                                .with_label(Span::new(backtick as u32, (backtick + 1) as u32)),
+                            );
+                        }
+                    }
+                }
+            }
             _ => {}
         }
     }
