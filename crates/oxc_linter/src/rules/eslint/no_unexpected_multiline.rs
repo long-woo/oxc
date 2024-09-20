@@ -1,5 +1,8 @@
-use memchr::memchr;
-use oxc_ast::AstKind;
+use memchr::{memchr, memrchr};
+use oxc_ast::{
+    ast::{BinaryOperator, Expression},
+    AstKind,
+};
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::{GetSpan, Span};
@@ -88,9 +91,69 @@ impl Rule for NoUnexpectedMultiline {
                     }
                 }
             }
+            AstKind::BinaryExpression(binary_expr) => {
+                if binary_expr.operator != BinaryOperator::Division {
+                    return;
+                }
+                let Some(AstKind::BinaryExpression(parent_binary_expr)) =
+                    ctx.nodes().parent_kind(node.id())
+                else {
+                    return;
+                };
+                if parent_binary_expr.operator != BinaryOperator::Division {
+                    return;
+                }
+                let span = Span::new(binary_expr.left.span().end, parent_binary_expr.span().end);
+                let src = ctx.source_range(span);
+
+                let Some(newline) = memchr(b'\n', src.as_bytes()) else {
+                    return;
+                };
+                let Some(second_slash) = memrchr(b'/', src.as_bytes()) else {
+                    return;
+                };
+
+                // get all identifier characters after the second slash
+                let ident_bytes: Vec<u8> = src.as_bytes()[(second_slash + 1)..]
+                    .iter()
+                    .take_while(|&&b| b.is_ascii_alphanumeric())
+                    .copied()
+                    .collect();
+                let Ok(ident_name) = std::str::from_utf8(&ident_bytes) else {
+                    return;
+                };
+
+                if (newline as u32) < parent_binary_expr.left.span().start
+					// The identifier name should look like it was an attempt to use a regex
+					&& is_regex_flag(ident_name)
+					// if it was a regex attempt, the second slash should be before the identifier
+                    && (second_slash as u32) + span.start + 1 == parent_binary_expr.right.span().start
+                {
+                    ctx.diagnostic(
+                        OxcDiagnostic::warn(
+                            "Unexpected newline between numerator and division operator",
+                        )
+                        .with_label(Span::new(
+                            binary_expr.span.end as u32,
+                            (binary_expr.span.end + 1) as u32,
+                        )),
+                    );
+                }
+            }
             _ => {}
         }
     }
+}
+
+// based on ESLint source: REGEX_FLAG_MATCHER = /^[gimsuy]+$/u;
+fn is_regex_flag(str: &str) -> bool {
+    // check if all characters in the string are in the set [gimsuy]
+    for c in str.chars() {
+        if !matches!(c, 'g' | 'i' | 'm' | 's' | 'u' | 'y') {
+            return false;
+        }
+    }
+    true
 }
 
 #[test]
