@@ -42,17 +42,28 @@ impl Rule for NoUnexpectedMultiline {
                 if let Some(AstKind::ChainExpression(_)) = ctx.nodes().parent_kind(node.id()) {
                     return;
                 }
-                dbg!(call_expr);
-                // src = "(a || b)\n(x || y)"
-                let span = Span::new(call_expr.callee.span().end, call_expr.span.end);
-                let src = ctx.source_range(span);
-                dbg!(src);
+                let src =
+                    ctx.source_range(Span::new(call_expr.callee.span().end, call_expr.span.end));
                 if let Some(open_paren) = memchr(b'(', src.as_bytes()) {
-                    dbg!(open_paren);
                     if let Some(newline) = memchr(b'\n', src.as_bytes()) {
-                        dbg!(newline);
                         if newline < open_paren {
                             ctx.diagnostic(OxcDiagnostic::warn("Unexpected newline between function name and open parenthesis of function call").with_label(Span::new(open_paren as u32, (open_paren + 1) as u32)));
+                        }
+                    }
+                }
+            }
+            AstKind::MemberExpression(member_expr) => {
+                if !member_expr.is_computed() || member_expr.optional() {
+                    return;
+                }
+                let src = ctx.source_range(Span::new(
+                    member_expr.object().span().end,
+                    member_expr.span().end,
+                ));
+                if let Some(open_bracket) = memchr(b'[', src.as_bytes()) {
+                    if let Some(newline) = memchr(b'\n', src.as_bytes()) {
+                        if newline < open_bracket {
+                            ctx.diagnostic(OxcDiagnostic::warn("Unexpected newline between object and open bracket of property access").with_label(Span::new(open_bracket as u32, (open_bracket + 1) as u32)));
                         }
                     }
                 }
